@@ -2,19 +2,25 @@ var express = require('express'); 
 var bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+var new_issue = require('../issue');
 var router = express.Router(); 
 var con;
 var db = require('mysql2/promise');
-
-var inform = {
-    host : "localhost",
-    user : "root",
-    password : "password",
-    port : 3306,
-    database : "test"
-};
+var mysql = require('../config')
+var inform = mysql.inform;
 
 router.post('/', async function(req, res, next) {
+
+	async function myinsert(insert_sql){
+        try{
+            console.log(insert_sql);
+            const [row1, field1] = await con.query(insert_sql);
+            return true;
+        }catch(error){
+            return false;
+        }
+    }
+ 
     console.log("REST API Post Method - Member Login And JWT Sign");
 	const my_mil_num = req.body.mil_num;
 	//var my_name;
@@ -36,7 +42,18 @@ router.post('/', async function(req, res, next) {
 			console.log("로그인 성공");
 			const my_name = row1[0].name;
 			console.log("내이름 : "+my_name);
-        	//res.send("로그인 성공.");
+			var access_token_obj = await new_issue.issue_new_token(my_mil_num, my_name, '2m');
+			var refresh_token_obj = await new_issue.issue_new_token(my_mil_num, my_name, '15m');
+			var access_token = access_token_obj.accessToken;
+			var refresh_token = refresh_token_obj.accessToken;
+			console.log("액세스토큰 : "+access_token);
+			console.log("리프래시토큰 : "+refresh_token);
+			var sql2 = "insert into refresh_token values ('"+my_mil_num+"', '"+refresh_token+"');";
+			var insert_query = myinsert(sql2);
+			if(insert_query) res.send({"access_token" : access_token, "refresh_token" : refresh_token});
+    		else res.send("토큰생성 실패");     	
+	//res.send("로그인 성공.");
+/*
 			try {
                 const accessToken = await new Promise((resolve, reject) => {
                     jwt.sign({
@@ -61,6 +78,7 @@ router.post('/', async function(req, res, next) {
                 console.log(err);
                 res.status(401).json({success:false, errormessage:'token sign fail'});
             }
+*/
 		}
 		else{
 			console.log("로그인 실패");

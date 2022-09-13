@@ -3,25 +3,19 @@ var bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 var router = express.Router(); 
-/*
+var mysql = require('../config')
+var inform = mysql.inform;
 var con;
-var db = require('mysql2/promise');
-var inform = {
-    host : "localhost",
-    user : "root",
-    password : "password",
-    port : 3306,
-    database : "test"
-};
-*/
+
 router.post('/', async function(req, res, next) {
-    const accessToken = req.body.token; 
+    //const accessToken = req.body.token; 
+	const accessToken = req.header('Access_Token');
 	if (accessToken == null) {
 		res.status(403).json({success:false, errormessage:'Authentication fail'});
 	} else {
 		try {
 			const tokenInfo = await new Promise((resolve, reject) => {
-				jwt.verify(accessToken, "sjh_secret", 
+				jwt.verify(accessToken, config.secret, 
 					(err, decoded) => {
 						if (err) {
 							reject(err);

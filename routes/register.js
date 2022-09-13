@@ -3,14 +3,8 @@ var bcrypt = require('bcrypt');
 var router = express.Router(); 
 var con;
 var db = require('mysql2/promise');
-
-var inform = {
-    host : "localhost",
-    user : "root",
-    password : "password",
-    port : 3306,
-    database : "test"
-};
+var mysql = require('../config');
+var inform = mysql.inform;
 
 router.post('/', async function(req, res, next) {
     console.log("REST API Post Method - Member Login And JWT Sign");
@@ -26,7 +20,7 @@ router.post('/', async function(req, res, next) {
 			return false;
         }
     }
-
+	console.log(inform);
 	con = await db.createConnection(inform);
 	const my_mil_num = req.body.mil_num;
     const my_password = req.body.password;
